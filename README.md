@@ -192,6 +192,7 @@ void abs_control(Module* module, int action) { ... }
 Với các hàm điều khiển như abs,light, ta có thể mở rộng thêm ở đây  
 
 ## 5. Giải thích luồng chạy trong main 
+
 ```cpp
 #include "module_manager.h"
 #include "function_handler.h"
