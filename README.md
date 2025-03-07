@@ -154,7 +154,7 @@ void destroy_module_list(ModuleList* list) {
 Ví dụ: Khi không cần dùng hộp nữa, vứt bỏ toàn bộ hộp và các module bên trong.
 
 ## 3. File error_handler.h và file error_handler.c
-
+Tệp này chịu trách nhiệm xử lý lỗi trong chương trình bằng kỹ thuật setjmp/longjmp. Khi một module gặp lỗi (ví dụ: động cơ đã bật lại bật lần nữa), chương trình sẽ "nhảy" về một trạng thái an toàn đã định nghĩa trước, thay vì dừng hoàn toàn.
 ## 4. File function_handler.h và file function_handler.c:
 - function_handler.h: Khai báo các hàm điều khiển để module khác gọi.
 - function_handler.c:
@@ -192,18 +192,52 @@ void abs_control(Module* module, int action) { ... }
 Với các hàm điều khiển như abs,light, ta có thể mở rộng thêm ở đây  
 
 ## 5. Giải thích luồng chạy trong main 
+```cpp
+#include "module_manager.h"
+#include "function_handler.h"
+#include "error_handler.h"
 
+int main() {
+    // Tạo danh sách module
+    ModuleList* list = create_module_list(5);
+    
+    // Tạo module động cơ
+    Module engine = {
+        .id = 1,
+        .name = strdup("Engine"),
+        .status = 0,
+        .control_action = engine_control  // Gán hàm điều khiển
+    };
+    add_module(list, engine); // Thêm vào danh sách
 
+    // Xử lý lỗi bằng setjmp
+    if (setjmp(env) == 0) {
+        Module* eng = find_module(list, 1);
+        if (eng) {
+            eng->control_action(eng, 1); // Bật động cơ (lần 1)
+            eng->control_action(eng, 1); // Bật lại → Gây lỗi
+        }
+    } else {
+        printf("Hệ thống đã phục hồi.\n");
+    }
 
+    destroy_module_list(list);
+    return 0;
+}
+```
 
-
-
-
-
-
-
-
-
+Luồng xử lý:
+- Khởi tạo:
+   - Tạo danh sách module và thêm module động cơ vào.
+   - Gán engine_control cho control_action của module.
+- Bật động cơ lần 1:
+   - control_action(eng, 1) → Gọi engine_control().
+   - Kiểm tra trạng thái: Chưa bật → Bật bit STATUS_ON.
+- Bật động cơ lần 2:
+   - Trạng thái đã là STATUS_ON → Phát hiện lỗi.
+   - Gọi handle_error() → Kích hoạt longjmp để nhảy về setjmp.
+- Xử lý lỗi:
+   - Chương trình nhảy về setjmp, in thông báo phục hồi.
 
 
 
@@ -216,26 +250,3 @@ Với các hàm điều khiển như abs,light, ta có thể mở rộng thêm �
 
 ```
 
-```cpp
-
-```
-
-```cpp
-
-```
-
-```cpp
-
-```
-
-```cpp
-
-```
-
-```cpp
-
-```
-
-```cpp
-
-```
