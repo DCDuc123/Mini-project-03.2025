@@ -17,8 +17,8 @@ int main() {
     if (setjmp(env) == 0) {
         Module* eng = find_module(list, 1);
         if (eng) {
-            eng->control_action(eng, 1); // Turn on
-            //eng->control_action(eng, 1); // Cause error
+            eng->control_action(eng, 1); // bật lần 1
+            eng->control_action(eng, 1); // bật lần 2 gây lỗi 
         }
     } else {
         printf("System recovered.\n");
